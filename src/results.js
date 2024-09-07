@@ -31,7 +31,12 @@ export async function fetchSpotifyData(accessToken) {
 
         const similarity = getSimilarity(merged);
 
-        displayResults(merged);
+        if (similarity == -1) {
+            console.error("Error determining similarity.")
+        }
+        else {
+            displayResults(similarity)
+        }
     } catch (error) {
         console.error('Error fetching Spotify data:', error);
         document.getElementById('results').innerText = 'Failed to load data.';
@@ -40,6 +45,8 @@ export async function fetchSpotifyData(accessToken) {
 
 // Function to calculate how similar the two are
 function getSimilarity(data) {
+    let count = -1;
+
     fetch('config/Julias_Top_100.json')
     .then(juliaResponse => {
         if (!juliaResponse.ok) {
@@ -56,24 +63,21 @@ function getSimilarity(data) {
         const setIds = new Set(ids);
         const commonIds = [...setJuliaIds].filter(id => setIds.has(id));
     
-        const count = commonIds.length;
-    
-        console.log(count)
+        count = commonIds.length;
 
         displayResults(count)
       })
       .catch(error => {
-        // TODO: Clean this up so that the entire method is not within a .then() statement.
         console.error('Error fetching the config JSON file:', error);
       });
-    
 
+      return count;
 }
 
 // Function to display the fetched results
 function displayResults(data) {
     const resultsDiv = document.getElementById('results');
-    resultsDiv.innerHTML = `Your music taste is ${data}% good.`;
+    resultsDiv.innerHTML = `<span style="color: #ffffff;">Your music taste is ${data}% good.</span>`;
 
     if (data >= 66) {
         const textDiv = document.createElement('div');
@@ -85,24 +89,9 @@ function displayResults(data) {
         resultsDiv.appendChild(textDiv);
     } else {
         const textDiv = document.createElement('div');
-        textDiv.innerHTML = '<p><span style="color: #ff0000;">YOU SUCK!!!!! You should kill yourself.</span>&nbsp;<img src="https://html5-editor.net/tinymce/plugins/emoticons/img/smiley-money-mouth.gif" alt="money-mouth" /></p>'
+        textDiv.innerHTML = '<p><span style="color: #ff0000; background-color: #000000;">YOU SUCK!!!!! You should kill yourself.</span>&nbsp;<img src="https://html5-editor.net/tinymce/plugins/emoticons/img/smiley-money-mouth.gif" alt="money-mouth" /></p>'
         resultsDiv.appendChild(textDiv);
     }    
-
-    // if (data.items && data.items.length > 0) {
-    //     data.items.forEach(artist => {
-    //         const artistDiv = document.createElement('div');
-    //         artistDiv.innerHTML = `
-    //             <strong>${artist.name}</strong>
-    //             <br>
-    //             <img src="${artist.images[0]?.url}" alt="${artist.name}" style="width: 100px; height: 100px;">
-    //             <br><br>
-    //         `;
-    //         resultsDiv.appendChild(artistDiv);
-    //     });
-    // } else {
-    //     resultsDiv.innerText = 'No top artists found.';
-    // }
 }
 
 // On page load, retrieve the access token and fetch data
